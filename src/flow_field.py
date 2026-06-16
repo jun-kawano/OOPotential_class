@@ -31,3 +31,11 @@ class FlowField:
     def compute(self):
         for potential_flow in self.potential_flows:
             self.PHI += potential_flow.potential(self.X, self.Y)
+
+    def compute_velocity(self):
+        dx = self.X[0, 1] - self.X[0, 0]
+        dy = self.Y[1, 0] - self.Y[0, 0]
+
+        self.U, self.V = np.gradient(self.PHI, dx, dy, edge_order=2)
+        self.V, self.U = self.U, self.V  # np.gradient returns (d/dy, d/dx) — swap needed
+
