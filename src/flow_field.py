@@ -3,14 +3,19 @@ import numpy as np
 class FlowField:
     def __init__(self, Nx=100, Ny=100,
                  x_bounds=(-5, 5),
-                 y_bounds=(-5, 5)):
+                 y_bounds=(-5, 5),
+                 dt=0.001):
         self.Nx = Nx
         self.Ny = Ny
         self.x_bounds = x_bounds
         self.y_bounds = y_bounds
         self.potential_flows = []
+        self.time = 0.0
+        self.dt = dt
 
         self.X, self.Y = self.initialize_domain()
+        self.U = None
+        self.V = None
         self.PHI = np.full_like(self.X, 0)
 
     def add(self, potential_flow):
@@ -31,3 +36,14 @@ class FlowField:
     def compute(self):
         for potential_flow in self.potential_flows:
             self.PHI += potential_flow.potential(self.X, self.Y)
+
+    def compute_velocity(self):
+        dx = self.X[0, 1] - self.X[0, 0]
+        dy = self.Y[1, 0] - self.Y[0, 0]
+
+        self.U, self.V = np.gradient(self.PHI, dx, dy, edge_order=2)
+        self.V, self.U = self.U, self.V  # np.gradient returns (d/dy, d/dx) — swap needed
+
+    def step(self):
+        self.compute()
+        self.compute_velocity()
