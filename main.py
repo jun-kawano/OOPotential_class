@@ -20,12 +20,19 @@ for i in range(20):
     s_2 = Source(-10, x_0_s[i], y_0_s[i])
     field.add(s_2)
 
-field.compute()
+N_steps = 10
+for i_step in range(N_steps):
+    field.step()
+    plt.pcolormesh(field.X, field.Y, field.PHI)
+    plt.streamplot(field.X, field.Y, field.U, field.V)
+    plt.show()
 
-
-plt.pcolormesh(field.X, field.Y, field.PHI)
-# plt.streamplot(field.X, field.Y, field.PHI)
-plt.show()
+# field.compute()
+#
+#
+# plt.pcolormesh(field.X, field.Y, field.PHI)
+# # plt.streamplot(field.X, field.Y, field.PHI)
+# plt.show()
 
 
 
