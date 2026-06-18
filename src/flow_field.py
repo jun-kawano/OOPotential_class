@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.interpolate import RegularGridInterpolator
+
 
 class FlowField:
     def __init__(self, Nx=100, Ny=100,
@@ -33,6 +35,19 @@ class FlowField:
         X, Y = np.meshgrid(xx, yy)
         return X, Y
 
+    def interpolate_velocity(self, x_c, y_c):
+        pass
+
+    def build_interpolator(self):
+        xx = self.X[0, :]  # 1D array of x-coordinates
+        yy = self.Y[:, 0]  # 1D array of y-coordinates
+        U_interpolator = RegularGridInterpolator((xx, yy), self.U.T)
+        V_interpolator = RegularGridInterpolator((xx, yy), self.V.T)
+
+        self.U_interpolator = U_interpolator
+        self.V_interpolator = V_interpolator
+
+
     def compute(self):
         for potential_flow in self.potential_flows:
             self.PHI += potential_flow.potential(self.X, self.Y)
@@ -43,6 +58,7 @@ class FlowField:
 
         self.U, self.V = np.gradient(self.PHI, dx, dy, edge_order=2)
         self.V, self.U = self.U, self.V  # np.gradient returns (d/dy, d/dx) — swap needed
+        self.build_interpolator()
 
     def step(self):
         self.compute()
