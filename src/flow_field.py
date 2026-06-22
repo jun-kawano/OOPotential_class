@@ -52,6 +52,13 @@ class FlowField:
         for potential_flow in self.potential_flows:
             self.PHI += potential_flow.potential(self.X, self.Y)
 
+    """Example on how to compute the potential without the current potential flow."""
+    def compute_ignore_own(self, potential_flow):
+        for potential_flow in self.potential_flows:
+            if potential_flow in self.potential_flows:
+                continue
+            self.PHI += potential_flow.potential(self.X, self.Y)
+
     def compute_velocity(self):
         dx = self.X[0, 1] - self.X[0, 0]
         dy = self.Y[1, 0] - self.Y[0, 0]
