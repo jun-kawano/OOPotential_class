@@ -49,6 +49,7 @@ class FlowField:
 
 
     def compute(self):
+        self.PHI = np.zeros_like(self.X, dtype=float) # require to not accumulate phi values
         for potential_flow in self.potential_flows:
             self.PHI += potential_flow.potential(self.X, self.Y)
 
@@ -63,10 +64,55 @@ class FlowField:
         dx = self.X[0, 1] - self.X[0, 0]
         dy = self.Y[1, 0] - self.Y[0, 0]
 
-        self.U, self.V = np.gradient(self.PHI, dx, dy, edge_order=2)
-        self.V, self.U = self.U, self.V  # np.gradient returns (d/dy, d/dx) — swap needed
+        self.V, self.U = np.gradient(self.PHI, dx, dy, edge_order=2)
+        #self.V, self.U = self.U, self.V  # np.gradient returns (d/dy, d/dx) — swap needed
         self.build_interpolator()
 
+
+    def compute_velocity_excluding(self, exclude_element):
+        """Compute PHI and velocity, skipping one element."""
+        phi_without = np.zeros_like(self.X, dtype=float)
+        for elem in self.potential_flows:
+            if elem is not exclude_element:
+                phi_without += elem.potential(self.X, self.Y)
+
+        dx = self.X[0, 1] - self.X[0, 0]
+        dy = self.Y[1, 0] - self.Y[0, 0]
+
+        # get x and y velocities
+        self.V, self.U = np.gradient(phi_without, dy, dx, edge_order=2)
+        self.build_interpolator()
+
+    def boundary_deletion(self):
+        active_flows = []
+        for elem in self.potential_flows:
+            if (self.x_bounds[0] <= elem.x0 <= self.x_bounds[1] and
+                    self.y_bounds[0] <= elem.y0 <= self.y_bounds[1]):
+                active_flows.append(elem)
+        self.potential_flows = active_flows
+
+    def euler_step(self):
+        element_velocities = []
+        for elem in self.potential_flows:
+            # update local velocity interpolators ignoring elem
+            self.compute_velocity_excluding(elem)
+
+            # use the interpolator to evaluate velocity at given coordinates
+            pt = np.array([[elem.x0, elem.y0]])
+            u_val = self.U_interpolator(pt)[0]
+            v_val = self.V_interpolator(pt)[0]
+
+            element_velocities.append((elem, u_val, v_val))
+
+        for elem, u, v in element_velocities:
+            # first order Euler
+            elem.x0 += u * self.dt
+            elem.y0 += v * self.dt
+
+        self.boundary_deletion()
+        self.time += self.dt
+
     def step(self):
+        self.euler_step()
         self.compute()
         self.compute_velocity()
