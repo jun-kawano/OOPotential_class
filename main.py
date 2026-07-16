@@ -4,6 +4,10 @@ import numpy as np
 from src.doublet import Doublet
 from src.source import Source
 from src.flow_field import FlowField
+from src.visualization import save_frame
+
+import os
+os.makedirs("output", exist_ok=True)
 
 field = FlowField(
     Nx=150,
@@ -27,24 +31,15 @@ for i in range(N_random_doublets):
     s_2 = Doublet(strength=strengths[i], x0=x_0_s[i], y0=y_0_s[i])
     field.add(s_2)
 
-N_steps = 30
+N_steps = 200
 
-phi_min_cmap = -10.0  # fixed color lims to improve visualization
-phi_max_cmap = 10.0
+cmap_min = -10.0  # fixed color lims to improve visualization
+cmap_max = 10.0
 
-for i_step in range(N_steps):
+for step in range(N_steps):
     field.step()
+    if step % 20 == 0:
+        print(f"Saving frame for step {step}...")
+        save_frame(field, step, cmap_min, cmap_max)
 
-    plt.figure(figsize=(8, 8))
-    plt.title(f"Step {i_step + 1} | Time: {field.time:.2f}s | Active Doublets: {len(field.potential_flows)}")
-    plt.pcolormesh(field.X, field.Y, field.PHI, shading='auto', cmap='jet', vmin=phi_min_cmap, vmax=phi_max_cmap)
-
-    plt.colorbar(label='Potential (PHI)')
-    plt.streamplot(field.X, field.Y, field.U, field.V, color='black', density=1, linewidth=0.5)
-    for elem in field.potential_flows:
-        plt.plot(elem.x0, elem.y0, 'o', color='lime', markersize=5, markeredgecolor='black')
-
-    plt.xlim(field.x_bounds)
-    plt.ylim(field.y_bounds)
-    plt.tight_layout()
-    plt.show()
+print("Simulation complete. Check the 'output' directory for frames.")
