@@ -6,14 +6,17 @@ A Python framework for 2D potential flow simulation using Object-Oriented Progra
 
 ## Project Structure
 
-```
+```text
 OOPotential_class/
 ├── src/
+│   ├── __init__.py          # Marks src as a Python package
 │   ├── potential_flow.py    # Abstract base class for flow elements
 │   ├── source.py            # Source element (radial outflow)
 │   ├── doublet.py           # Doublet element (dipole)
-│   └── flow_field.py        # Flow field container and solver
-├── main.py                  # Example usage and visualization
+│   ├── flow_field.py        # Flow field container and solver
+│   └── visualization.py     # Handles Matplotlib plotting and rendering
+├── main.py                  # Example usage and time-stepping loop
+├── requirements.txt         # Pinned Python dependencies
 └── README.md
 ```
 
@@ -47,7 +50,9 @@ Container for flow elements and solver.
 ```bash
 git clone https://github.com/rafacerq/OOPotential_class.git
 cd OOPotential_class
-pip install numpy scipy matplotlib
+conda create -n oopotential python=3.10
+conda activate oopotential
+pip install -r requirements.txt
 ```
 
 ## Usage
